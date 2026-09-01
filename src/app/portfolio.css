@@ -201,6 +201,95 @@
 }
 .boot-panel .boot-apple + .boot-word { margin-top: 6px; }
 
+/* terminal window — black bg, green phosphor */
+.win.terminal-win .win-content {
+  background: #0c0c0c !important;
+  background-image: none !important;
+  color: #33ff33;
+  font-family: ui-monospace, "Cascadia Code", "SF Mono", Menlo, monospace;
+}
+.terminal-screen {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 320px;
+}
+.terminal-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: #1a1a1a;
+  border-bottom: 1px solid #222;
+  font-size: 10px;
+  color: #8a8a8a;
+  letter-spacing: 0.02em;
+}
+.terminal-bar .dot {
+  width: 8px; height: 8px; border-radius: 50%; display: inline-block;
+}
+.terminal-output {
+  flex: 1 1 auto;
+  overflow: hidden;
+  padding: 8px 10px;
+  font-size: 7px;
+  line-height: 1.05;
+  letter-spacing: 0;
+  white-space: pre;
+  font-family: ui-monospace, Menlo, monospace;
+  color: #33ff33;
+  text-shadow: 0 0 4px rgba(51,255,51,0.35);
+  background: radial-gradient(ellipse at top, rgba(51,255,51,0.06), transparent 60%), #0a0a0a;
+  min-height: 220px;
+  max-height: 42vh;
+  overflow-y: auto;
+}
+.terminal-prompt {
+  padding: 6px 10px;
+  font-size: 10px;
+  color: #33ff33;
+  border-top: 1px solid #1a1a1a;
+  background: #0f0f0f;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.terminal-prompt .cursor {
+  display: inline-block;
+  width: 7px; height: 12px;
+  background: #33ff33;
+  animation: term-blink 1s step-end infinite;
+  vertical-align: middle;
+}
+@keyframes term-blink { 50% { opacity: 0; } }
+.terminal-controls {
+  display: flex;
+  gap: 6px;
+  padding: 6px 10px;
+  background: #111;
+  border-top: 1px solid #222;
+}
+.terminal-controls button {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid #333;
+  background: #1e1e1e;
+  color: #ccc;
+  cursor: pointer;
+}
+.terminal-controls button:hover { background: #2a2a2a; color: #fff; }
+.terminal-controls button.primary {
+  background: #1a3a1a;
+  border-color: #2a6a2a;
+  color: #7fff7f;
+}
+.terminal-title {
+  font-size: 10px;
+  color: #666;
+  margin-left: auto;
+}
+
 /* responsive: hide desktop icons on very small, keep dock? desktop.css already hides dock-wrap <600px */
 @media (max-width: 900px) {
   .desktop-icons {

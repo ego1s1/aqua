@@ -338,6 +338,127 @@ export default function AquaDesktop() {
       openWins.contact = makeWin({ id: "contact", title: "Contact — Mail", bodyHTML: contactBody(), cls: "small", w: 400, x: 140, y: 110 });
     };
     const openGithub = () => window.open(SITE.github, "_blank");
+
+    // --- Bad Apple terminal ---
+    const openTerminal = () => {
+      if (openWins.terminal) { focusWin(openWins.terminal); return; }
+      const termHTML =
+        '<div class="terminal-screen">' +
+        '<div class="terminal-bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span style="margin-left:8px">ego1s1@aqua — Terminal — 80×24</span><span class="terminal-title">Bad Apple!!</span></div>' +
+        '<pre class="terminal-output" id="badapple-output">loading Bad Apple...</pre>' +
+        '<div class="terminal-prompt"><span style="color:#8a8a8a">ego1s1@aqua:~$</span> ./badapple.sh --ascii --color<span class="cursor"></span></div>' +
+        '<div class="terminal-controls"><button data-action="play" class="primary">▶ Play</button><button data-action="pause">⏸ Pause</button><button data-action="restart">↺ Restart</button><span style="margin-left:auto;font-size:9px;color:#666">ESC to close · click progress to scrub</span></div>' +
+        '</div>';
+      const win = makeWin({ id: "terminal", title: "Terminal — Bad Apple", bodyHTML: termHTML, cls: "terminal-win", w: 640, x: 60, y: 50 });
+      openWins.terminal = win;
+      win.classList.add("terminal-win");
+
+      const out = win.querySelector("#badapple-output") as HTMLElement;
+      const playBtn = win.querySelector('[data-action="play"]') as HTMLElement;
+      const pauseBtn = win.querySelector('[data-action="pause"]') as HTMLElement;
+      const restartBtn = win.querySelector('[data-action="restart"]') as HTMLElement;
+
+      const W = 64, H = 22;
+      const FRAMES = 90;
+      const FPS = 12;
+      // procedural Bad Apple silhouette — sway + arm/leg dance
+      const genFrame = (t: number): string => {
+        const sway = Math.sin(t * 1.6) * 3;
+        const headY = 6, headR = 5;
+        const cx = W / 2 + sway;
+        let s = "";
+        for (let y = 0; y < H; y++) {
+          for (let x = 0; x < W; x++) {
+            let on = false;
+            // head
+            const dx = x - cx, dy = y - headY;
+            if (dx * dx + dy * dy < headR * headR * 0.95) on = true;
+            // hair buns + twin tails
+            const hairLx = cx - 5 - Math.sin(t * 2) * 0.8, hairRx = cx + 5 + Math.sin(t * 2) * 0.8;
+            if ((x - hairLx) * (x - hairLx) + (y - 4) * (y - 4) < 3) on = true;
+            if ((x - hairRx) * (x - hairRx) + (y - 4) * (y - 4) < 3) on = true;
+            // long twin tails
+            if (y > 5 && y < 16) {
+              const tailSway = Math.sin(y * 0.4 + t * 3) * 1.2;
+              if (Math.abs(x - (hairLx - 1 + tailSway)) < 0.9) on = true;
+              if (Math.abs(x - (hairRx + 1 - tailSway)) < 0.9) on = true;
+            }
+            // body / dress (triangle)
+            if (y >= 11 && y < 18) {
+              const w = (y - 11) * 1.1 + 3;
+              if (Math.abs(x - cx) < w) on = true;
+            }
+            // arms — dancing
+            const armPhase = Math.sin(t * 2.2);
+            if (y >= 12 && y < 14) {
+              const ax = cx + (armPhase > 0 ? 6 : -6) + armPhase * 2;
+              if (Math.abs(x - ax) < 3) on = true;
+              const ax2 = cx + (armPhase > 0 ? -7 : 7) - armPhase * 2;
+              if (Math.abs(x - ax2) < 3) on = true;
+            }
+            // legs
+            if (y >= 18 && y < 21) {
+              if (Math.abs(x - (cx - 2)) < 1.4) on = true;
+              if (Math.abs(x - (cx + 2)) < 1.4) on = true;
+            }
+            // shadow ground
+            if (y === 21 && Math.abs(x - cx) < 8) on = true;
+            s += on ? "█" : " ";
+          }
+          if (y < H - 1) s += "\n";
+        }
+        // add scanline + vignette chars for CRT feel every 3rd frame
+        if (Math.floor(t * 2) % 4 === 0) {
+          s = s.replace(/ /g, (m, off) => (off % 113 === 0 ? "·" : " "));
+        }
+        return s;
+      };
+
+      const frames: string[] = [];
+      for (let i = 0; i < FRAMES; i++) frames.push(genFrame((i / FRAMES) * Math.PI * 4));
+
+      let idx = 0;
+      let playing = true;
+      let iv: ReturnType<typeof setInterval> | null = null;
+      const render = () => { if (out) out.textContent = frames[idx]; };
+      const start = () => {
+        if (iv) clearInterval(iv);
+        playing = true;
+        iv = setInterval(() => { idx = (idx + 1) % frames.length; render(); }, 1000 / FPS);
+      };
+      const pause = () => { if (iv) { clearInterval(iv); iv = null; } playing = false; };
+      render();
+      start();
+
+      playBtn?.addEventListener("click", start);
+      pauseBtn?.addEventListener("click", pause);
+      restartBtn?.addEventListener("click", () => { idx = 0; render(); start(); });
+
+      // scrub on click output
+      out?.addEventListener("click", (e) => {
+        const rect = out.getBoundingClientRect();
+        const pct = (e.clientX - rect.left) / rect.width;
+        idx = Math.floor(pct * frames.length) % frames.length;
+        render();
+      });
+
+      // cleanup on close
+      const closeBtn = win.querySelector('[aria-label="Close"]') as HTMLElement;
+      const cleanup = () => { if (iv) clearInterval(iv); };
+      closeBtn?.addEventListener("click", cleanup);
+      // keep reference for min/close cleanup
+      const origRemove = win.remove.bind(win);
+      win.remove = (() => { cleanup(); return origRemove(); }) as typeof win.remove;
+
+      // allow ESC to pause/play
+      win.addEventListener("keydown", (e) => {
+        if ((e as KeyboardEvent).key === "Escape") pause();
+        if ((e as KeyboardEvent).key === " ") { e.preventDefault(); if (playing) pause(); else start(); }
+      });
+      win.tabIndex = 0;
+      win.focus();
+    };
+
     const openApp = (id: string) => {
       switch (id) {
         case "about": return openAbout();
@@ -346,6 +467,7 @@ export default function AquaDesktop() {
         case "experience": return openExperience();
         case "resume": return openResume();
         case "contact": return openContact();
+        case "terminal": return openTerminal();
         case "github": return openGithub();
         default: if (id.indexOf("proj:") === 0) return openProjectDetail(id.slice(5));
       }
@@ -498,7 +620,7 @@ export default function AquaDesktop() {
         <div className="desktop-icon" data-open="experience" tabIndex={0}><img src="/icons/GenericDocument.png" alt="Experience" /><span>Experience.log</span></div>
         <div className="desktop-icon" data-open="resume" tabIndex={0}><img src="/icons/preview.png" alt="Resume" /><span>Resume.md</span></div>
         <div className="desktop-icon" data-open="contact" tabIndex={0}><img src="/icons/Mail.png" alt="Contact" /><span>Contact</span></div>
-        <div className="desktop-icon" data-open="github" tabIndex={0}><img src="/icons/Terminal.png" alt="Terminal" /><span>GitHub</span></div>
+        <div className="desktop-icon" data-open="terminal" tabIndex={0}><img src="/icons/Terminal.png" alt="Terminal" /><span>Terminal</span></div>
       </div>
 
       <div className="dock-wrap">
@@ -510,7 +632,7 @@ export default function AquaDesktop() {
           <div className="dock-item" data-launch="resume"><span className="dock-label">Resume</span><img src="/icons/preview.png" alt="Preview" /></div>
           <div className="dock-item" data-launch="contact"><span className="dock-label">Contact</span><img src="/icons/Mail.png" alt="Mail" /></div>
           <div className="dock-divider"></div>
-          <div className="dock-item" data-launch="github"><span className="dock-label">Terminal</span><img src="/icons/Terminal.png" alt="Terminal" /></div>
+          <div className="dock-item" data-launch="terminal"><span className="dock-label">Terminal</span><img src="/icons/Terminal.png" alt="Terminal" /></div>
           <div className="dock-item" data-trash><span className="dock-label">Trash</span><img src="/icons/TrashEmpty.png" alt="Trash" /></div>
         </div>
       </div>
