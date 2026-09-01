@@ -1,0 +1,25 @@
+{
+  "name": "aqua",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "bun@1.4.0",
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "15.3.8",
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.47",
+    "@types/react": "^19.1.4",
+    "@types/react-dom": "^19.1.5",
+    "eslint": "^9.27.0",
+    "eslint-config-next": "15.2.1",
+    "typescript": "^5.8.3"
+  }
+}

@@ -1,0 +1,11 @@
+/* globals.css — imports Aqua shell; no Tailwind needed for portfolio */
+@import "./aqua.css";
+@import "./desktop.css";
+@import "./portfolio.css";
+
+/* Next.js overrides — ensure desktop fills viewport */
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
