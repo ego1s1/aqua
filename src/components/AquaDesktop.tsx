@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect } from "react";
+import LZString from "lz-string";
 import { SITE, ABOUT_MD, EXP_MD, SKILL_GROUPS, PROJECTS, HERO_META, buildResumeMarkdown } from "@/lib/portfolio";
 
 export default function AquaDesktop() {
@@ -340,118 +341,120 @@ export default function AquaDesktop() {
     };
     const openGithub = () => window.open(SITE.github, "_blank");
 
-    // --- Bad Apple terminal ---
+    // --- Bad Apple terminal — EmirXK/bad_apple (framesData.lz + bad_apple.mp3) ---
     const openTerminal = () => {
       if (openWins.terminal) { focusWin(openWins.terminal); return; }
       const termHTML =
         '<div class="terminal-screen">' +
-        '<div class="terminal-bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span style="margin-left:8px">ego1s1@aqua — Terminal — 80×24</span><span class="terminal-title">Bad Apple!!</span></div>' +
-        '<pre class="terminal-output" id="badapple-output">loading Bad Apple...</pre>' +
-        '<div class="terminal-prompt"><span style="color:#8a8a8a">ego1s1@aqua:~$</span> ./badapple.sh --ascii --color<span class="cursor"></span></div>' +
-        '<div class="terminal-controls"><button data-action="play" class="primary">▶ Play</button><button data-action="pause">⏸ Pause</button><button data-action="restart">↺ Restart</button><span style="margin-left:auto;font-size:9px;color:#666">ESC to close · click progress to scrub</span></div>' +
+        '<div class="terminal-bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span style="margin-left:8px">ego1s1@aqua — Terminal — Bad Apple</span><span class="terminal-title">EmirXK/bad_apple</span></div>' +
+        '<pre class="terminal-output" id="badapple-output" style="font-size:4.5px;line-height:1;white-space:pre;text-align:center;overflow:hidden;display:flex;justify-content:center;align-items:center;min-height:340px">loading Bad Apple... (2.2MB)</pre>' +
+        '<audio id="badapple-audio" preload="auto" style="display:none"><source src="/bad_apple/bad_apple.mp3" type="audio/mp3"></audio>' +
+        '<div class="terminal-prompt"><span style="color:#8a8a8a">ego1s1@aqua:~$</span> ./badapple.sh<span class="cursor"></span></div>' +
+        '<div class="terminal-controls"><button data-action="play" class="primary">▶ Play</button><button data-action="pause">⏸ Pause</button><button data-action="restart">↺ Restart</button><span style="margin-left:auto;font-size:9px;color:#666">30fps · click Play (audio needs gesture)</span></div>' +
         '</div>';
       const win = makeWin({ id: "terminal", title: "Terminal — Bad Apple", bodyHTML: termHTML, cls: "terminal-win", w: 640, x: 60, y: 50 });
       openWins.terminal = win;
       win.classList.add("terminal-win");
 
       const out = win.querySelector("#badapple-output") as HTMLElement;
+      const audio = win.querySelector("#badapple-audio") as HTMLAudioElement;
       const playBtn = win.querySelector('[data-action="play"]') as HTMLElement;
       const pauseBtn = win.querySelector('[data-action="pause"]') as HTMLElement;
       const restartBtn = win.querySelector('[data-action="restart"]') as HTMLElement;
 
-      const W = 64, H = 22;
-      const FRAMES = 90;
-      const FPS = 12;
-      // procedural Bad Apple silhouette — sway + arm/leg dance
-      const genFrame = (t: number): string => {
-        const sway = Math.sin(t * 1.6) * 3;
-        const headY = 6, headR = 5;
-        const cx = W / 2 + sway;
-        let s = "";
-        for (let y = 0; y < H; y++) {
-          for (let x = 0; x < W; x++) {
-            let on = false;
-            // head
-            const dx = x - cx, dy = y - headY;
-            if (dx * dx + dy * dy < headR * headR * 0.95) on = true;
-            // hair buns + twin tails
-            const hairLx = cx - 5 - Math.sin(t * 2) * 0.8, hairRx = cx + 5 + Math.sin(t * 2) * 0.8;
-            if ((x - hairLx) * (x - hairLx) + (y - 4) * (y - 4) < 3) on = true;
-            if ((x - hairRx) * (x - hairRx) + (y - 4) * (y - 4) < 3) on = true;
-            // long twin tails
-            if (y > 5 && y < 16) {
-              const tailSway = Math.sin(y * 0.4 + t * 3) * 1.2;
-              if (Math.abs(x - (hairLx - 1 + tailSway)) < 0.9) on = true;
-              if (Math.abs(x - (hairRx + 1 - tailSway)) < 0.9) on = true;
-            }
-            // body / dress (triangle)
-            if (y >= 11 && y < 18) {
-              const w = (y - 11) * 1.1 + 3;
-              if (Math.abs(x - cx) < w) on = true;
-            }
-            // arms — dancing
-            const armPhase = Math.sin(t * 2.2);
-            if (y >= 12 && y < 14) {
-              const ax = cx + (armPhase > 0 ? 6 : -6) + armPhase * 2;
-              if (Math.abs(x - ax) < 3) on = true;
-              const ax2 = cx + (armPhase > 0 ? -7 : 7) - armPhase * 2;
-              if (Math.abs(x - ax2) < 3) on = true;
-            }
-            // legs
-            if (y >= 18 && y < 21) {
-              if (Math.abs(x - (cx - 2)) < 1.4) on = true;
-              if (Math.abs(x - (cx + 2)) < 1.4) on = true;
-            }
-            // shadow ground
-            if (y === 21 && Math.abs(x - cx) < 8) on = true;
-            s += on ? "█" : " ";
-          }
-          if (y < H - 1) s += "\n";
-        }
-        // add scanline + vignette chars for CRT feel every 3rd frame
-        if (Math.floor(t * 2) % 4 === 0) {
-          s = s.replace(/ /g, (m, off) => (off % 113 === 0 ? "·" : " "));
-        }
-        return s;
+      if (audio) audio.volume = 0.9;
+
+      let frames: string[] = [];
+      let playing = false;
+      let raf = 0;
+      let startTime = 0;
+      const fps = 30;
+      const frameDuration = 1000 / fps;
+
+      const renderAt = (elapsed: number) => {
+        if (!frames.length || !out) return;
+        const idx = Math.min(Math.floor(elapsed / frameDuration), frames.length - 1);
+        out.textContent = frames[idx].replace(/\\n/g, "\n");
       };
 
-      const frames: string[] = [];
-      for (let i = 0; i < FRAMES; i++) frames.push(genFrame((i / FRAMES) * Math.PI * 4));
+      const loop = () => {
+        if (!playing) return;
+        const elapsed = performance.now() - startTime;
+        // sync to audio if playing
+        const t = audio && !audio.paused && audio.currentTime ? audio.currentTime * 1000 : elapsed;
+        renderAt(t);
+        if (t < frames.length * frameDuration - 16) {
+          raf = requestAnimationFrame(loop);
+        } else {
+          playing = false;
+        }
+      };
 
-      let idx = 0;
-      let playing = true;
-      let iv: ReturnType<typeof setInterval> | null = null;
-      const render = () => { if (out) out.textContent = frames[idx]; };
       const start = () => {
-        if (iv) clearInterval(iv);
+        if (!frames.length) return;
         playing = true;
-        iv = setInterval(() => { idx = (idx + 1) % frames.length; render(); }, 1000 / FPS);
+        startTime = performance.now() - (audio?.currentTime || 0) * 1000;
+        if (audio) audio.play().catch(() => {});
+        cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(loop);
       };
-      const pause = () => { if (iv) { clearInterval(iv); iv = null; } playing = false; };
-      render();
-      start();
+      const pause = () => {
+        playing = false;
+        cancelAnimationFrame(raf);
+        if (audio) audio.pause();
+      };
+      const restart = () => {
+        if (audio) { audio.currentTime = 0; }
+        startTime = performance.now();
+        playing = true;
+        start();
+      };
 
       playBtn?.addEventListener("click", start);
       pauseBtn?.addEventListener("click", pause);
-      restartBtn?.addEventListener("click", () => { idx = 0; render(); start(); });
+      restartBtn?.addEventListener("click", restart);
+      if (audio) {
+        audio.addEventListener("play", () => { if (!playing) { playing = true; startTime = performance.now() - audio.currentTime * 1000; raf = requestAnimationFrame(loop); } });
+        audio.addEventListener("pause", () => { playing = false; cancelAnimationFrame(raf); });
+      }
 
-      // scrub on click output
-      out?.addEventListener("click", (e) => {
-        const rect = out.getBoundingClientRect();
-        const pct = (e.clientX - rect.left) / rect.width;
-        idx = Math.floor(pct * frames.length) % frames.length;
-        render();
-      });
+      // fetch + decompress framesData.lz (EmirXK/bad_apple)
+      fetch("/bad_apple/framesData.lz")
+        .then((r) => r.text())
+        .then((data) => {
+          const decompressed = LZString.decompressFromBase64(data);
+          if (!decompressed) throw new Error("decompress failed");
+          frames = JSON.parse(decompressed) as string[];
+          if (out) out.textContent = "ready — " + frames.length + " frames · click Play";
+          // auto-play after load (may be blocked until gesture, then play button)
+          setTimeout(() => { if (win.isConnected) start(); }, 120);
+        })
+        .catch((e) => {
+          if (out) out.textContent = "failed to load Bad Apple: " + (e as Error).message;
+        });
 
-      // cleanup on close
+      // responsive font-size like original bad_apple (4:3)
+      const adjust = () => {
+        if (!out || !win.isConnected) return;
+        const w = Math.min(win.clientWidth - 20, 620);
+        out.style.fontSize = Math.max(3.5, w / 88) + "px";
+      };
+      adjust();
+      const ro = new ResizeObserver(adjust);
+      ro.observe(win);
+      win.addEventListener("pointerdown", adjust);
+
       const closeBtn = win.querySelector('[aria-label="Close"]') as HTMLElement;
-      const cleanup = () => { if (iv) clearInterval(iv); };
+      const cleanup = () => {
+        playing = false;
+        cancelAnimationFrame(raf);
+        if (audio) { audio.pause(); audio.src = ""; }
+        ro.disconnect();
+      };
       closeBtn?.addEventListener("click", cleanup);
-      // keep reference for min/close cleanup
       const origRemove = win.remove.bind(win);
       win.remove = (() => { cleanup(); return origRemove(); }) as typeof win.remove;
 
-      // allow ESC to pause/play
       win.addEventListener("keydown", (e) => {
         if ((e as KeyboardEvent).key === "Escape") pause();
         if ((e as KeyboardEvent).key === " ") { e.preventDefault(); if (playing) pause(); else start(); }
