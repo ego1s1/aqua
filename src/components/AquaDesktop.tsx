@@ -341,27 +341,23 @@ export default function AquaDesktop() {
     };
     const openGithub = () => window.open(SITE.github, "_blank");
 
-    // --- Bad Apple terminal — EmirXK/bad_apple (framesData.lz + bad_apple.mp3) ---
+    // --- Bad Apple terminal — EmirXK/bad_apple clean viewport ---
     const openTerminal = () => {
-      if (openWins.terminal) { focusWin(openWins.terminal); return; }
+      const existing = openWins.terminal as HTMLElement | undefined;
+      if (existing && document.body.contains(existing)) { focusWin(existing); return; }
+      // prevent duplicate if racing double-click
+      if (existing) delete openWins.terminal;
       const termHTML =
-        '<div class="terminal-screen">' +
-        '<div class="terminal-bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span style="margin-left:8px">ego1s1@aqua — Terminal — Bad Apple</span><span class="terminal-title">EmirXK/bad_apple</span></div>' +
-        '<pre class="terminal-output" id="badapple-output" style="font-size:4.5px;line-height:1;white-space:pre;text-align:center;overflow:hidden;display:flex;justify-content:center;align-items:center;min-height:340px">loading Bad Apple... (2.2MB)</pre>' +
+        '<div class="terminal-screen" style="background:#000;display:flex;justify-content:center;align-items:center;height:100%;min-height:380px;overflow:hidden;padding:0;margin:0">' +
+        '<pre class="terminal-output" id="badapple-output" style="margin:0;font-size:4px;line-height:1;white-space:pre;text-align:center;background:#000;color:#fff;overflow:hidden;display:flex;justify-content:center;align-items:center;width:100%;height:100%;min-height:380px">loading Bad Apple...</pre>' +
         '<audio id="badapple-audio" preload="auto" style="display:none"><source src="/bad_apple/bad_apple.mp3" type="audio/mp3"></audio>' +
-        '<div class="terminal-prompt"><span style="color:#8a8a8a">ego1s1@aqua:~$</span> ./badapple.sh<span class="cursor"></span></div>' +
-        '<div class="terminal-controls"><button data-action="play" class="primary">▶ Play</button><button data-action="pause">⏸ Pause</button><button data-action="restart">↺ Restart</button><span style="margin-left:auto;font-size:9px;color:#666">30fps · click Play (audio needs gesture)</span></div>' +
         '</div>';
-      const win = makeWin({ id: "terminal", title: "Terminal — Bad Apple", bodyHTML: termHTML, cls: "terminal-win", w: 640, x: 60, y: 50 });
+      const win = makeWin({ id: "terminal", title: "Terminal", bodyHTML: termHTML, cls: "terminal-win", w: 640, x: 60, y: 50 });
       openWins.terminal = win;
       win.classList.add("terminal-win");
 
       const out = win.querySelector("#badapple-output") as HTMLElement;
       const audio = win.querySelector("#badapple-audio") as HTMLAudioElement;
-      const playBtn = win.querySelector('[data-action="play"]') as HTMLElement;
-      const pauseBtn = win.querySelector('[data-action="pause"]') as HTMLElement;
-      const restartBtn = win.querySelector('[data-action="restart"]') as HTMLElement;
-
       if (audio) audio.volume = 0.9;
 
       let frames: string[] = [];
@@ -380,7 +376,6 @@ export default function AquaDesktop() {
       const loop = () => {
         if (!playing) return;
         const elapsed = performance.now() - startTime;
-        // sync to audio if playing
         const t = audio && !audio.paused && audio.currentTime ? audio.currentTime * 1000 : elapsed;
         renderAt(t);
         if (t < frames.length * frameDuration - 16) {
@@ -403,54 +398,45 @@ export default function AquaDesktop() {
         cancelAnimationFrame(raf);
         if (audio) audio.pause();
       };
-      const restart = () => {
-        if (audio) { audio.currentTime = 0; }
-        startTime = performance.now();
-        playing = true;
-        start();
-      };
 
-      playBtn?.addEventListener("click", start);
-      pauseBtn?.addEventListener("click", pause);
-      restartBtn?.addEventListener("click", restart);
       if (audio) {
         audio.addEventListener("play", () => { if (!playing) { playing = true; startTime = performance.now() - audio.currentTime * 1000; raf = requestAnimationFrame(loop); } });
         audio.addEventListener("pause", () => { playing = false; cancelAnimationFrame(raf); });
       }
 
-      // fetch + decompress framesData.lz (EmirXK/bad_apple)
+      // click viewport to toggle (no extra buttons)
+      out?.addEventListener("click", () => { if (playing) pause(); else start(); });
+
       fetch("/bad_apple/framesData.lz")
         .then((r) => r.text())
         .then((data) => {
           const decompressed = LZString.decompressFromBase64(data);
           if (!decompressed) throw new Error("decompress failed");
           frames = JSON.parse(decompressed) as string[];
-          if (out) out.textContent = "ready — " + frames.length + " frames · click Play";
-          // auto-play after load (may be blocked until gesture, then play button)
-          setTimeout(() => { if (win.isConnected) start(); }, 120);
+          // auto-play (may need gesture)
+          setTimeout(() => { if (win.isConnected) start(); }, 80);
         })
         .catch((e) => {
-          if (out) out.textContent = "failed to load Bad Apple: " + (e as Error).message;
+          if (out) out.textContent = "failed to load: " + (e as Error).message;
         });
 
-      // responsive font-size like original bad_apple (4:3)
       const adjust = () => {
         if (!out || !win.isConnected) return;
-        const w = Math.min(win.clientWidth - 20, 620);
-        out.style.fontSize = Math.max(3.5, w / 88) + "px";
+        const w = Math.min(win.clientWidth - 16, 640);
+        out.style.fontSize = Math.max(3.2, w / 84) + "px";
       };
       adjust();
       const ro = new ResizeObserver(adjust);
       ro.observe(win);
-      win.addEventListener("pointerdown", adjust);
 
-      const closeBtn = win.querySelector('[aria-label="Close"]') as HTMLElement;
       const cleanup = () => {
         playing = false;
         cancelAnimationFrame(raf);
         if (audio) { audio.pause(); audio.src = ""; }
         ro.disconnect();
+        if (openWins.terminal === win) delete openWins.terminal;
       };
+      const closeBtn = win.querySelector('[aria-label="Close"]') as HTMLElement;
       closeBtn?.addEventListener("click", cleanup);
       const origRemove = win.remove.bind(win);
       win.remove = (() => { cleanup(); return origRemove(); }) as typeof win.remove;
