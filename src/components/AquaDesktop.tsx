@@ -28,14 +28,28 @@ export default function AquaDesktop() {
       bootEl.innerHTML =
         '<div class="boot-panel">' +
         '<div class="boot-apple" aria-hidden="true"></div>' +
-        '<div class="boot-word">Aqua UI</div>' +
+        '<div class="boot-word">Mac OS X</div>' +
         '<aqua-progress class="boot-bar" value="0" max="100"></aqua-progress>' +
         "</div>";
       document.body.appendChild(bootEl);
       document.documentElement.classList.add("booting");
 
-      function playChime() {
+      let chimeAudio: HTMLAudioElement | null = null;
+      const playChime = () => {
         if (!chimeOn) return;
+        try {
+          if (!chimeAudio) {
+            chimeAudio = new Audio("/assets/startup.wav");
+            chimeAudio.volume = 0.85;
+            chimeAudio.preload = "auto";
+          }
+          const p = chimeAudio.play();
+          if (p && (p as Promise<void>).catch) (p as Promise<void>).catch(() => fallbackChime());
+        } catch {
+          fallbackChime();
+        }
+      };
+      const fallbackChime = () => {
         try {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
@@ -65,7 +79,7 @@ export default function AquaDesktop() {
             } catch {}
           }, 1800);
         } catch {}
-      }
+      };
       let chimed = false;
       const tryChime = () => {
         if (chimed || !chimeOn) return;

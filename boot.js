@@ -12,22 +12,34 @@
   boot.innerHTML =
     '<div class="boot-panel">' +
       '<div class="boot-apple" aria-hidden="true"></div>' +
-      '<div class="boot-word">Aqua UI</div>' +
+      '<div class="boot-word">Mac OS X</div>' +
       '<aqua-progress class="boot-bar" value="0" max="100"></aqua-progress>' +
     '</div>';
   document.body.appendChild(boot);
   document.documentElement.classList.add("booting");
 
-  // iconic Mac boot chime — F-major chord via Web Audio (fallback if autoplay blocked)
+  // authentic iMac G3 boot chime — wav (with Web Audio fallback)
+  var chimeAudio = null;
   function playChime() {
     if (!chimeOn) return;
+    try {
+      if (!chimeAudio) {
+        chimeAudio = new Audio("assets/startup.wav");
+        chimeAudio.volume = 0.85;
+        chimeAudio.preload = "auto";
+      }
+      var p = chimeAudio.play();
+      if (p && p.catch) p.catch(function(){ fallbackChime(); });
+    } catch (e) { fallbackChime(); }
+  }
+  function fallbackChime() {
     try {
       var AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) return;
       var ctx = new AC();
       if (ctx.state === "suspended") ctx.resume().catch(function(){});
       var now = ctx.currentTime;
-      var freqs = [174.61, 220.0, 261.63, 349.23]; // F3 A3 C4 F4
+      var freqs = [174.61, 220.0, 261.63, 349.23];
       freqs.forEach(function(f) {
         var osc = ctx.createOscillator();
         var gain = ctx.createGain();
@@ -43,9 +55,8 @@
         osc.start(now);
         osc.stop(now + 1.4);
       });
-      // soft tail — close context after
-      setTimeout(function(){ try{ ctx.close(); }catch(e){} }, 1800);
-    } catch (e) {}
+      setTimeout(function(){ try{ ctx.close(); }catch(e2){} }, 1800);
+    } catch (e2) {}
   }
   var chimed = false;
   function tryChime() {
