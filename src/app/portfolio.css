@@ -1,0 +1,222 @@
+/* portfolio.css — overrides for Aqua portfolio desktop
+   Pure Aqua palette: pinstripes, gel buttons, Lucida Grande.
+   Only portfolio-specific layout; widgets stay in aqua.css/desktop.css */
+
+/* desktop icon grid — right column, auto-flow grid to avoid overlap */
+.desktop-icons {
+  position: absolute;
+  top: 34px;
+  right: 14px;
+  bottom: 80px;
+  display: grid;
+  grid-template-columns: 84px;
+  grid-auto-rows: min-content;
+  gap: 16px;
+  align-content: start;
+  justify-items: center;
+  z-index: 1;
+}
+/* override desktop.css absolute positioning — portfolio icons flow in grid */
+.desktop-icons .desktop-icon {
+  position: relative;
+  width: 84px;
+  text-align: center;
+  color: #fff;
+  cursor: default;
+  left: auto !important;
+  top: auto !important;
+}
+.desktop-icon img { width: 48px; height: 48px; display: block; margin: 0 auto 4px; image-rendering: auto; }
+.desktop-icon span {
+  font-size: 11px;
+  line-height: 1.2;
+  padding: 1px 4px;
+  border-radius: 3px;
+  text-shadow: 0 1px 2px rgba(0,0,0,.85);
+  display: inline-block;
+  max-width: 92px;
+  word-break: break-word;
+}
+.desktop-icon.selected span,
+.desktop-icon:focus span,
+.desktop-icon:active span { background: #4d83d2; text-shadow: none; }
+.desktop-icon:focus { outline: none; }
+
+/* portfolio windows — a bit wider than demo */
+.win.portfolio { min-width: 320px; max-width: 92vw; }
+.win.portfolio.large { width: min(560px, 92vw); }
+.win.portfolio.medium { width: min(460px, 92vw); }
+.win.portfolio.small { width: min(380px, 92vw); }
+
+/* generic doc tweaks inside aqua windows */
+.win .win-content .doc { padding: 14px 16px 16px; }
+.win .win-content .doc h3 { font-size: 13px; font-weight: 700; margin: 0 0 6px; }
+.win .win-content .doc h4 { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #6b6b6b; margin: 14px 0 6px; }
+.win .win-content .doc p { font-size: 12px; line-height: 1.5; color: #222; margin: 6px 0; }
+.win .win-content .doc .muted { color: #666; font-size: 11px; }
+
+/* avatar row in About */
+.about-head {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.about-head img {
+  width: 56px; height: 56px;
+  border-radius: 4px;
+  border: 1px solid #999;
+  box-shadow: 0 1px 3px rgba(0,0,0,.25);
+  object-fit: cover;
+  flex: 0 0 auto;
+}
+.about-head .name { font-size: 16px; font-weight: 800; letter-spacing: -.01em; }
+.about-head .role { font-size: 11px; color: #3a5da6; font-weight: 600; }
+.about-head .meta { font-size: 11px; color: #555; }
+
+/* field grid (system info) */
+.info-grid {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 2px 8px;
+  font-size: 11px;
+  line-height: 1.5;
+  margin: 8px 0;
+}
+.info-grid dt { color: #8a8a8a; font-weight: 700; text-transform: uppercase; font-size: 10px; letter-spacing: .04em; }
+.info-grid dd { margin: 0; color: #222; }
+
+/* skill tabs — use aqua tabs */
+.skill-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 8px;
+}
+@media (max-width: 520px) { .skill-grid { grid-template-columns: repeat(2, 1fr); } }
+.skill-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background: #fff;
+  border: 1px solid #b8b8b8;
+  border-radius: 6px;
+  font-size: 11px;
+  box-shadow: 0 1px 0 rgba(255,255,255,.9), 0 1px 2px rgba(0,0,0,.08);
+}
+.skill-chip .dot {
+  width: 7px; height: 7px; border-radius: 50%; flex: 0 0 auto;
+  box-shadow: inset 0 0 1px rgba(0,0,0,.3);
+}
+
+/* projects finder table */
+.finder-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-bottom: 1px solid #b8b8b8;
+  background: linear-gradient(to bottom, #efefef, #d8d8d8);
+  font-size: 11px;
+  color: #555;
+}
+.finder-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.finder-table th {
+  text-align: left;
+  font-weight: 600;
+  font-size: 10px;
+  color: #555;
+  padding: 4px 8px;
+  border-bottom: 1px solid #bbb;
+  background: linear-gradient(to bottom, #f6f6f6, #e3e3e3);
+}
+.finder-table td { padding: 6px 8px; border-bottom: 1px solid #e6e6e6; vertical-align: top; }
+.finder-table tr:hover td { background: #eef3ff; }
+.finder-table tr.selected td { background: #4d83d2; color: #fff; }
+.finder-table tr { cursor: default; }
+.finder-table .stack { color: #666; font-size: 10px; }
+.finder-table tr.selected .stack { color: #e6efff; }
+.finder-table .evt { font-size: 10px; color: #7a5a00; background: #fff7d6; border: 1px solid #e8d9a0; padding: 0 4px; border-radius: 3px; white-space: nowrap; }
+
+/* project detail */
+.proj-header { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 8px; }
+.proj-icon { width: 32px; height: 32px; flex: 0 0 auto; border-radius: 4px; display: grid; place-items: center; font-size: 16px; color: #fff; box-shadow: inset 0 1px 0 rgba(255,255,255,.4); }
+.proj-title { font-weight: 800; font-size: 13px; }
+.proj-event { font-size: 10px; color: #7a5a00; }
+.stack-pills { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0; }
+.stack-pills span { font-size: 10px; background: #fff; border: 1px solid #c2c2c2; padding: 1px 6px; border-radius: 10px; color: #333; }
+
+/* markdown pre — resume/experience */
+.markdown-pre {
+  font: 11px/1.5 ui-monospace, Menlo, Monaco, monospace;
+  background: #fff;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  padding: 10px 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #222;
+  max-height: 48vh;
+  overflow: auto;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.06);
+}
+.markdown-pre .h { font-weight: 700; color: #1a1a1a; }
+.markdown-pre .accent { color: #2a5db0; }
+
+/* contact buttons row */
+.contact-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.contact-row a { text-decoration: none; }
+
+/* Apple glyph in menubar — vertically centered via flex, no offset */
+.menubar .apple {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.menubar .apple-glyph {
+  font-family: "Lucida Grande", "Apple Symbols", -apple-system, sans-serif;
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 400;
+  display: inline-block;
+  transform: none;
+  position: relative;
+  top: 0;
+}
+.menubar .apple:hover .apple-glyph,
+.menubar .apple[aria-expanded="true"] .apple-glyph { color: #fff; }
+
+/* boot screen Apple — replaces the 128px Aqua mark but keeps same panel rhythm */
+.boot-apple {
+  font-family: "Lucida Grande", "Apple Symbols", -apple-system, sans-serif;
+  font-size: clamp(72px, 14vh, 110px);
+  line-height: 1;
+  color: #1a1a1a;
+  text-shadow: 0 1px 0 rgba(255,255,255,.95), 0 2px 8px rgba(0,0,0,.18);
+  margin: 0 0 6px;
+  display: block;
+  text-align: center;
+  -webkit-font-smoothing: antialiased;
+}
+.boot-panel .boot-apple + .boot-word { margin-top: 6px; }
+
+/* responsive: hide desktop icons on very small, keep dock? desktop.css already hides dock-wrap <600px */
+@media (max-width: 900px) {
+  .desktop-icons {
+    right: 8px;
+    gap: 12px;
+  }
+}
+/* on short viewports auto-wrap to 2 columns */
+@media (max-height: 680px) {
+  .desktop-icons {
+    grid-template-columns: 84px 84px;
+    gap: 12px 16px;
+  }
+}
+@media (max-width: 600px) {
+  .desktop-icons { display: none; }
+  .win.portfolio { width: 100vw !important; left: 0 !important; }
+  .about-head img { width: 48px; height: 48px; }
+}
